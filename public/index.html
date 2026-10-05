@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CET-4 AI 备考教练</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部状态栏 -->
+    <header id="header" class="app-header">
+      <div class="header-left">
+        <span class="logo">🎓 CET-4 Coach</span>
+      </div>
+      <div class="header-right">
+        <span id="ai-status" class="ai-badge">AI加载中</span>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content">
+      
+      <!-- 页面：首次设置档案 -->
+      <section id="page-setup" class="page active">
+        <div class="setup-container">
+          <div class="setup-header">
+            <div class="setup-icon">🎯</div>
+            <h1>CET-4 备考档案</h1>
+            <p class="setup-subtitle">建立你的个人备考档案，AI将为你定制学习计划</p>
+          </div>
+          
+          <div class="setup-card">
+            <div class="form-group">
+              <label>CET-4 考试日期 *</label>
+              <input type="date" id="input-exam-date" class="form-input">
+              <p class="form-hint">今年12月考试，请选择具体日期</p>
+            </div>
+            
+            <div class="form-group">
+              <label>目标分数</label>
+              <select id="input-target-score" class="form-input">
+                <option value="425">425分（通过线）</option>
+                <option value="450">450分</option>
+                <option value="500">500分</option>
+                <option value="550">550分（优秀）</option>
+                <option value="600">600分+</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>每天可学习时间</label>
+              <div class="time-options">
+                <button class="time-btn" data-minutes="30">30分钟</button>
+                <button class="time-btn active" data-minutes="60">60分钟</button>
+                <button class="time-btn" data-minutes="90">90分钟</button>
+                <button class="time-btn" data-minutes="120">120分钟</button>
+              </div>
+              <input type="number" id="input-custom-minutes" class="form-input" placeholder="自定义分钟数（可选）" min="15" max="300">
+            </div>
+            
+            <div class="form-group">
+              <label>每周学习天数</label>
+              <div class="days-options">
+                <button class="day-btn" data-days="5">5天</button>
+                <button class="day-btn active" data-days="6">6天</button>
+                <button class="day-btn" data-days="7">7天</button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>固定空闲时段（用于自动排课）</label>
+              <div class="time-slot-input">
+                <span>晚上</span>
+                <input type="time" id="input-evening-start" value="19:00">
+                <span>—</span>
+                <input type="time" id="input-evening-end" value="21:00">
+              </div>
+              <div class="time-slot-input">
+                <span>早晨</span>
+                <input type="time" id="input-morning-start" value="07:00">
+                <span>—</span>
+                <input type="time" id="input-morning-end" value="07:30">
+              </div>
+              <p class="form-hint">可只填写你常用的时段</p>
+            </div>
+            
+            <div class="form-group info-box">
+              <p><strong>初始参考数据</strong></p>
+              <p>高考英语：<span class="highlight">111分</span></p>
+              <p class="form-hint">该成绩仅用于建立初始英语能力画像，最终能力评估以CET-4诊断测试和后续学习数据为准。</p>
+            </div>
+            
+            <button id="btn-save-profile" class="btn-primary btn-large">保存档案，开始诊断测试</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：诊断测试 -->
+      <section id="page-diagnostic" class="page">
+        <div class="diagnostic-container">
+          <div class="diagnostic-header">
+            <h2>CET-4 入门诊断</h2>
+            <p>通过诊断测试，AI将准确评估你的英语水平</p>
+            <div class="progress-bar">
+              <div id="diagnostic-progress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <p id="diagnostic-progress-text" class="progress-text">第 1 / 6 部分</p>
+          </div>
+          
+          <div id="diagnostic-content" class="diagnostic-content">
+            <!-- 动态渲染题目 -->
+          </div>
+          
+          <div class="diagnostic-actions">
+            <button id="btn-diagnostic-prev" class="btn-secondary" style="display:none">上一题</button>
+            <button id="btn-diagnostic-next" class="btn-primary">下一题</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：诊断报告 -->
+      <section id="page-diagnostic-report" class="page">
+        <div id="diagnostic-report-content" class="report-container">
+          <!-- 动态渲染 -->
+        </div>
+      </section>
+
+      <!-- 页面：首页/今日任务 -->
+      <section id="page-home" class="page">
+        <div class="home-container">
+          <!-- 倒计时卡片 -->
+          <div class="countdown-card">
+            <div class="countdown-main">
+              <span id="countdown-days" class="countdown-number">--</span>
+              <span class="countdown-unit">天</span>
+            </div>
+            <p class="countdown-label">距离 CET-4 考试</p>
+            <div class="countdown-stats">
+              <div class="stat-item">
+                <span id="today-minutes" class="stat-value">0</span>
+                <span class="stat-label">今日学习(分)</span>
+              </div>
+              <div class="stat-item">
+                <span id="today-completion" class="stat-value">0%</span>
+                <span class="stat-label">完成度</span>
+              </div>
+              <div class="stat-item">
+                <span id="weakest-module" class="stat-value">--</span>
+                <span class="stat-label">最需提升</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 今日任务 -->
+          <!-- 今日课程 -->
+          <div id="today-classes-home" class="today-classes-home" style="display:none">
+            <!-- 动态渲染 -->
+          </div>
+          
+          <div class="section-header">
+            <h3>今日 CET-4 任务</h3>
+            <button id="btn-refresh-plan" class="btn-text">重新生成</button>
+          </div>
+          <div id="today-tasks" class="task-list">
+            <!-- 动态渲染 -->
+          </div>
+          
+          <button id="btn-start-today" class="btn-primary btn-large">开始今日学习</button>
+          
+          <!-- 学习概览 -->
+          <div class="section-header" style="margin-top:24px">
+            <h3>学习概览</h3>
+          </div>
+          <div class="overview-grid">
+            <div class="overview-card">
+              <span id="overview-days" class="overview-number">0</span>
+              <span class="overview-label">学习天数</span>
+            </div>
+            <div class="overview-card">
+              <span id="overview-minutes" class="overview-number">0</span>
+              <span class="overview-label">总时长(分)</span>
+            </div>
+            <div class="overview-card">
+              <span id="overview-questions" class="overview-number">0</span>
+              <span class="overview-label">做题数</span>
+            </div>
+            <div class="overview-card">
+              <span id="overview-accuracy" class="overview-number">0%</span>
+              <span class="overview-label">正确率</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：学习计划 -->
+      <section id="page-plan" class="page">
+        <div class="plan-container">
+          <h2>备考时间轴</h2>
+          <div id="timeline-container" class="timeline">
+            <!-- 动态渲染 -->
+          </div>
+          
+          <h3 style="margin-top:24px">本周学习建议</h3>
+          <div id="weekly-advice" class="advice-card">
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：我的课表 -->
+      <section id="page-schedule" class="page">
+        <div class="schedule-container">
+          <div class="schedule-header">
+            <h2>我的课表</h2>
+            <p class="schedule-subtitle">根据课表自动安排学习时间，避开上课时段</p>
+          </div>
+          
+          <!-- 今日课程 -->
+          <div id="today-classes" class="today-classes">
+            <!-- 动态渲染 -->
+          </div>
+          
+          <!-- 周课表视图 -->
+          <div class="week-tabs">
+            <button class="week-tab active" data-day="1">周一</button>
+            <button class="week-tab" data-day="2">周二</button>
+            <button class="week-tab" data-day="3">周三</button>
+            <button class="week-tab" data-day="4">周四</button>
+            <button class="week-tab" data-day="5">周五</button>
+            <button class="week-tab" data-day="6">周六</button>
+            <button class="week-tab" data-day="7">周日</button>
+          </div>
+          
+          <div id="day-schedule" class="day-schedule">
+            <!-- 动态渲染 -->
+          </div>
+          
+          <div id="free-slots" class="free-slots">
+            <!-- 动态渲染空闲时间 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：词汇 -->
+      <section id="page-vocabulary" class="page">
+        <div class="vocab-container">
+          <div class="vocab-stats">
+            <div class="vocab-stat">
+              <span id="vocab-learned" class="vocab-num">0</span>
+              <span class="vocab-label">已学</span>
+            </div>
+            <div class="vocab-stat">
+              <span id="vocab-mastered" class="vocab-num">0</span>
+              <span class="vocab-label">掌握</span>
+            </div>
+            <div class="vocab-stat">
+              <span id="vocab-weak" class="vocab-num">0</span>
+              <span class="vocab-label">薄弱</span>
+            </div>
+            <div class="vocab-stat">
+              <span id="vocab-today" class="vocab-num">0</span>
+              <span class="vocab-label">今日复习</span>
+            </div>
+          </div>
+          
+          <div class="vocab-tabs">
+            <button class="vocab-tab active" data-mode="learn">学习模式</button>
+            <button class="vocab-tab" data-mode="quiz">测试模式</button>
+            <button class="vocab-tab" data-mode="wrong">错词本</button>
+          </div>
+          
+          <div id="vocab-content" class="vocab-content">
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：阅读 -->
+      <section id="page-reading" class="page">
+        <div class="practice-container">
+          <div class="practice-header">
+            <h2>阅读训练</h2>
+            <div class="practice-modes">
+              <button class="mode-btn active" data-mode="careful">仔细阅读</button>
+              <button class="mode-btn" data-mode="long">长篇阅读</button>
+              <button class="mode-btn" data-mode="cloze">选词填空</button>
+            </div>
+          </div>
+          <div id="reading-content" class="practice-content">
+            <button class="btn-primary btn-large" onclick="startReadingPractice()">开始阅读训练</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：听力 -->
+      <section id="page-listening" class="page">
+        <div class="practice-container">
+          <div class="practice-header">
+            <h2>听力训练</h2>
+            <div class="info-banner">
+              <span>📢 当前为文本模式，音频播放功能可扩展。支持精听、原文对照、关键词分析。</span>
+            </div>
+          </div>
+          <div id="listening-content" class="practice-content">
+            <button class="btn-primary btn-large" onclick="startListeningPractice()">开始听力训练</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：写作 -->
+      <section id="page-writing" class="page">
+        <div class="writing-container">
+          <h2>AI 作文教练</h2>
+          <div id="writing-topic" class="writing-topic">
+            <!-- 动态渲染题目 -->
+          </div>
+          <textarea id="writing-input" class="writing-input" placeholder="在此输入你的作文...（建议120-180词）"></textarea>
+          <div class="writing-actions">
+            <button class="btn-secondary" onclick="getNewWritingTopic()">换一个题目</button>
+            <button class="btn-primary" onclick="submitWriting()">提交AI批改</button>
+          </div>
+          <div id="writing-feedback" class="writing-feedback">
+            <!-- 动态渲染批改结果 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：翻译 -->
+      <section id="page-translation" class="page">
+        <div class="translation-container">
+          <h2>中译英训练</h2>
+          <div id="translation-source" class="translation-source">
+            <!-- 动态渲染原文 -->
+          </div>
+          <textarea id="translation-input" class="translation-input" placeholder="在此输入你的英文翻译..."></textarea>
+          <div class="translation-actions">
+            <button class="btn-secondary" onclick="getNewTranslationTopic()">换一篇</button>
+            <button class="btn-primary" onclick="submitTranslation()">提交AI批改</button>
+          </div>
+          <div id="translation-feedback" class="translation-feedback">
+            <!-- 动态渲染批改结果 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：错题本 -->
+      <section id="page-wrong" class="page">
+        <div class="wrong-container">
+          <div class="wrong-header">
+            <h2>我的错题</h2>
+            <div class="wrong-filter">
+              <button class="filter-btn active" data-module="all">全部</button>
+              <button class="filter-btn" data-module="vocabulary">词汇</button>
+              <button class="filter-btn" data-module="grammar">语法</button>
+              <button class="filter-btn" data-module="reading">阅读</button>
+              <button class="filter-btn" data-module="listening">听力</button>
+            </div>
+          </div>
+          <div id="wrong-stats" class="wrong-stats">
+            <!-- 动态渲染 -->
+          </div>
+          <div id="wrong-list" class="wrong-list">
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：模拟考试 -->
+      <section id="page-mock" class="page">
+        <div class="mock-container">
+          <h2>CET-4 模拟考试</h2>
+          <div class="mock-info">
+            <p>模拟真实考试环境，计时答题，结束后生成详细报告</p>
+            <p class="mock-note">AI训练估算，仅用于学习参考</p>
+          </div>
+          <div id="mock-content">
+            <button class="btn-primary btn-large" onclick="startMockExam()">开始模拟考试</button>
+          </div>
+          <div id="mock-history" class="mock-history">
+            <h3>历史记录</h3>
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：学习报告 -->
+      <section id="page-report" class="page">
+        <div class="report-page-container">
+          <h2>学习报告</h2>
+          
+          <div class="report-tabs">
+            <button class="report-tab active" data-tab="weekly">周报</button>
+            <button class="report-tab" data-tab="ability">能力画像</button>
+            <button class="report-tab" data-tab="trend">学习趋势</button>
+          </div>
+          
+          <div id="report-content" class="report-content">
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：AI教练 -->
+      <section id="page-coach" class="page">
+        <div class="coach-container">
+          <div class="coach-header">
+            <div class="coach-avatar">🤖</div>
+            <div>
+              <h2>AI CET-4 教练</h2>
+              <p class="coach-subtitle">结合你的学习数据，给出个性化建议</p>
+            </div>
+          </div>
+          
+          <div id="chat-messages" class="chat-messages">
+            <!-- 动态渲染消息 -->
+          </div>
+          
+          <div class="chat-quick-questions">
+            <button class="quick-btn" onclick="sendQuickMessage('今天应该学什么？')">今天学什么</button>
+            <button class="quick-btn" onclick="sendQuickMessage('为什么我阅读总错？')">阅读总错</button>
+            <button class="quick-btn" onclick="sendQuickMessage('距离考试还有多少天？')">考试倒计时</button>
+            <button class="quick-btn" onclick="sendQuickMessage('怎么提高听力？')">提高听力</button>
+          </div>
+          
+          <div class="chat-input-area">
+            <input type="text" id="chat-input" class="chat-input" placeholder="问我任何关于CET-4备考的问题...">
+            <button id="btn-chat-send" class="btn-send">发送</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页面：个人设置 -->
+      <section id="page-profile" class="page">
+        <div class="profile-container">
+          <h2>个人档案</h2>
+          <div id="profile-content">
+            <!-- 动态渲染 -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 底部导航 -->
+    <nav id="bottom-nav" class="bottom-nav" style="display:none">
+      <button class="nav-item active" data-page="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">首页</span>
+      </button>
+      <button class="nav-item" data-page="vocabulary">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">词汇</span>
+      </button>
+      <button class="nav-item" data-page="reading">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">阅读</span>
+      </button>
+      <button class="nav-item" data-page="coach">
+        <span class="nav-icon">🤖</span>
+        <span class="nav-label">AI教练</span>
+      </button>
+      <button class="nav-item" data-page="more">
+        <span class="nav-icon">☰</span>
+        <span class="nav-label">更多</span>
+      </button>
+    </nav>
+
+    <!-- 更多功能弹窗 -->
+    <div id="more-modal" class="modal-overlay" style="display:none">
+      <div class="modal-content more-modal">
+        <div class="modal-header">
+          <h3>更多功能</h3>
+          <button class="modal-close" onclick="closeMoreModal()">✕</button>
+        </div>
+        <div class="more-grid">
+          <button class="more-item" data-page="plan">📅 学习计划</button>
+          <button class="more-item" data-page="schedule">📚 我的课表</button>
+          <button class="more-item" data-page="listening">🎧 听力</button>
+          <button class="more-item" data-page="writing">✍️ 写作</button>
+          <button class="more-item" data-page="translation">🔄 翻译</button>
+          <button class="more-item" data-page="wrong">❌ 错题本</button>
+          <button class="more-item" data-page="mock">📝 模拟考试</button>
+          <button class="more-item" data-page="report">📊 学习报告</button>
+          <button class="more-item" data-page="profile">⚙️ 个人设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 做题弹窗（通用） -->
+    <div id="practice-modal" class="modal-overlay" style="display:none">
+      <div class="modal-content practice-modal">
+        <div class="modal-header">
+          <h3 id="practice-modal-title">练习</h3>
+          <button class="modal-close" onclick="closePracticeModal()">✕</button>
+        </div>
+        <div id="practice-modal-body" class="practice-modal-body">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast" style="display:none"></div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

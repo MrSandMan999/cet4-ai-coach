@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  cet4-coach:
+    build: .
+    container_name: cet4-ai-coach
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3000

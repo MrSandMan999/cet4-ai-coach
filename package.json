@@ -1,0 +1,18 @@
+{
+  "name": "cet4-ai-coach",
+  "version": "1.0.0",
+  "description": "CET-4 AI 个人备考网站 - 你的AI私人教练",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

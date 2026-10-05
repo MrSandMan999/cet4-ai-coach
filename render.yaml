@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cet4-ai-coach
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/ai-status
+    autoDeploy: yes
